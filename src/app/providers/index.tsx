@@ -1,3 +1,5 @@
+import { ErrorBoundary } from "@/components/fallbacks";
+import { ToastProvider } from "@/components/toast";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 export function Providers({
@@ -5,14 +7,17 @@ export function Providers({
   ...props
 }: React.ComponentProps<typeof NextThemesProvider>) {
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
-      {children}
-    </NextThemesProvider>
+    <ErrorBoundary fallback={<div>Error</div>}>
+      <NextThemesProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+        {...props}
+      >
+        {children}
+        <ToastProvider />
+      </NextThemesProvider>
+    </ErrorBoundary>
   );
 }

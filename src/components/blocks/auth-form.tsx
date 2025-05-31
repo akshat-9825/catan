@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { AuthFormType, getAuthConfig } from "@/app/auth/auth-config";
 import {
   Card,
   CardContent,
@@ -9,19 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { GoogleAuthButton } from "./google-auth-button";
-import { AuthDivider } from "./auth-divider";
-import { EmailPasswordForm } from "./email-password-form";
-import { AuthToggle } from "./auth-toggle";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  AuthFormType,
-  getAuthConfig,
-  loginConfig,
-  signupConfig,
-} from "@/app/auth/auth-config";
 import { AuthFormData } from "@/lib/schema/auth-schemas";
+import { cn } from "@/lib/utils/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { AuthDivider } from "./auth-divider";
+import { AuthToggle } from "./auth-toggle";
+import { EmailPasswordForm } from "./email-password-form";
+import { GoogleAuthButton } from "./google-auth-button";
 
 type AuthFormProps = {
   className?: string;

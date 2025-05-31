@@ -9,6 +9,7 @@ import {
   AuthErrorFallback,
   DashboardSkeletonFallback,
 } from "@/components/fallbacks";
+import { showToast } from "@/components/toast";
 
 function DashboardContent() {
   // Using checkAuthStatus instead of getCurrentUser to avoid errors
@@ -22,6 +23,7 @@ function DashboardContent() {
 
   const handleSignOut = async () => {
     try {
+      showToast.loading("Signing out...");
       await authHelpers.signOut();
       // After sign out, redirect will happen automatically via the auth state change
       redirect("/auth");
@@ -105,10 +107,8 @@ function DashboardContent() {
 
 export default function Dashboard() {
   return (
-    <ErrorBoundary fallback={<AuthErrorFallback />}>
-      <Suspense fallback={<DashboardSkeletonFallback />}>
-        <DashboardContent />
-      </Suspense>
-    </ErrorBoundary>
+    <Suspense fallback={<DashboardSkeletonFallback />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

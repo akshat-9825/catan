@@ -10,7 +10,18 @@ import {
     Moon,
     CheckIcon, 
     CircleIcon, 
-    ChevronRightIcon
+    ChevronRightIcon,
+    AlertTriangle,
+    RefreshCw,
+    LogIn,
+    Wifi,
+    ShieldAlert,
+    Loader2,
+    X,
+    CheckCircle,
+    AlertCircle,
+    Info,
+    GalleryVerticalEnd
   } from 'lucide-react'
   
   export type IconComponent = typeof User
@@ -28,7 +39,18 @@ import {
     Moon,
     CheckIcon, 
     CircleIcon, 
-    ChevronRightIcon
+    ChevronRightIcon,
+    AlertTriangle,
+    RefreshCw,
+    LogIn,
+    Wifi,
+    ShieldAlert,
+    Loader2,
+    X,
+    CheckCircle,
+    AlertCircle,
+    Info,
+    GalleryVerticalEnd
   }
 
   // Custom icons

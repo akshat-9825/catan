@@ -8,7 +8,7 @@ import {
   Home,
   Wifi,
   ShieldAlert,
-} from "lucide-react";
+} from "@/lib/icons";
 
 /**
  * Authentication error fallback - redirects to login

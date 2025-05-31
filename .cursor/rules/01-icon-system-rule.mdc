@@ -1,3 +1,8 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
 # Icon System Rules
 
 ## 🎯 Always use the centralized icon system

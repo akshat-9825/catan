@@ -1,3 +1,8 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
 # React 19 use() Hook Patterns
 
 ## Data Fetching with use() Hook

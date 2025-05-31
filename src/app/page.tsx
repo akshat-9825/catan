@@ -12,8 +12,6 @@ function HomeContent() {
 
   console.log("user", user);
 
-  // If user is authenticated, redirect to dashboard
-  // Using Next.js redirect() function instead of useRouter + useEffect
   if (user) {
     console.log("User is present, redirecting to dashboard...");
     redirect("/dashboard");

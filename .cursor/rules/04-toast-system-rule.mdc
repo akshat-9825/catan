@@ -1,0 +1,384 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
+# Toast System Rules
+
+## 🎯 Always use the centralized toast system
+- **NEVER** import toast directly from `react-hot-toast` 
+- **ALWAYS** import from `@/components/toast` and use the `showToast` utility
+- This ensures consistent styling, behavior, and accessibility across the app
+
+### ❌ Don't do this:
+```tsx
+import toast from "react-hot-toast";
+toast.success("Success message");
+toast.error("Error message");
+```
+
+### ✅ Do this instead:
+```tsx
+import { showToast } from "@/components/toast";
+showToast.success("Success message");
+showToast.error("Error message");
+```
+
+## 📦 Toast System Overview
+
+### Location: `src/components/toast/index.tsx`
+The toast system provides:
+- **Consistent styling** with your design system (success, error, warning, info, default)
+- **Built-in icons** that match each variant
+- **Dark mode support** automatically
+- **Accessibility features** (dismissible, proper ARIA)
+- **Type safety** with TypeScript
+
+## 🎨 Toast Variants & Usage
+
+### 1. Success Toasts
+Use for successful operations like saving, creating, or completing actions:
+```tsx
+import { showToast } from "@/components/toast";
+
+// Basic success
+showToast.success("Game created successfully!");
+
+// With custom duration
+showToast.success("Player added to game", { duration: 3000 });
+
+// Non-dismissible success
+showToast.success("Auto-save enabled", { dismissible: false });
+```
+
+### 2. Error Toasts
+Use for error states, failed operations, or validation issues:
+```tsx
+// Basic error (automatically gets 6s duration)
+showToast.error("Failed to save game");
+
+// Custom error duration
+showToast.error("Network error occurred", { duration: 8000 });
+
+// Non-dismissible error (for critical errors)
+showToast.error("Connection lost", { dismissible: false });
+```
+
+### 3. Warning Toasts
+Use for cautionary messages or potential issues:
+```tsx
+showToast.warning("Game will end in 2 rounds");
+showToast.warning("Player disconnected", { duration: 5000 });
+```
+
+### 4. Info Toasts
+Use for informational messages or tips:
+```tsx
+showToast.info("New player joined the game");
+showToast.info("Your turn is next", { duration: 3000 });
+```
+
+### 5. Default Toasts
+Use for neutral messages:
+```tsx
+showToast.default("Game paused");
+```
+
+### 6. Custom Toasts
+Use when you need custom icons or variants:
+```tsx
+import { showToast } from "@/components/toast";
+import { Dice6 } from "@/lib/icons";
+
+showToast.custom("You rolled a 7!", {
+  variant: "warning",
+  icon: <Dice6 className="h-5 w-5 text-yellow-600" />,
+  duration: 4000
+});
+```
+
+## 🔄 Promise-based Toasts
+Perfect for async operations (auth, API calls, etc.):
+
+```tsx
+import { showToast } from "@/components/toast";
+
+// For async operations
+const createGame = async (gameData: GameData) => {
+  return showToast.promise(
+    apiCreateGame(gameData),
+    {
+      loading: "Creating game...",
+      success: (game) => `Game "${game.name}" created!`,
+      error: (error) => `Failed to create game: ${error.message}`,
+    }
+  );
+};
+
+// For auth operations
+const signIn = async (credentials: AuthData) => {
+  return showToast.promise(
+    authHelpers.signIn(credentials),
+    {
+      loading: "Signing in...",
+      success: () => "Welcome back!",
+      error: (error) => `Sign in failed: ${error.message}`,
+    }
+  );
+};
+```
+
+## 📱 Loading Toasts
+For operations where you need manual control:
+
+```tsx
+import { showToast } from "@/components/toast";
+
+const uploadGameData = async () => {
+  const toastId = showToast.loading("Uploading game data...");
+  
+  try {
+    await uploadAPI();
+    showToast.dismiss(toastId);
+    showToast.success("Upload complete!");
+  } catch (error) {
+    showToast.dismiss(toastId);
+    showToast.error("Upload failed");
+  }
+};
+```
+
+## 🏗️ Setup Requirements
+
+### 1. Toast Provider Setup
+Ensure `ToastProvider` is added to your root layout:
+
+```tsx
+// In app/layout.tsx or root component
+import { ToastProvider } from "@/components/toast";
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <ToastProvider />
+      </body>
+    </html>
+  );
+}
+```
+
+### 2. Import Pattern
+Always use the named import:
+```tsx
+import { showToast } from "@/components/toast";
+// Never: import showToast from "@/components/toast";
+```
+
+## 🎯 Best Practices
+
+### 1. Use Appropriate Variants
+```tsx
+// ✅ Good - matches the action result
+showToast.success("Settings saved");
+showToast.error("Failed to connect to server");
+showToast.warning("Unsaved changes will be lost");
+showToast.info("Game updated to latest rules");
+
+// ❌ Bad - variant doesn't match message intent
+showToast.error("Welcome to the game"); // Should be success/info
+showToast.success("Connection failed"); // Should be error
+```
+
+### 2. Write Clear, Actionable Messages
+```tsx
+// ✅ Good - clear and specific
+showToast.success("Game 'Island Adventure' created");
+showToast.error("Unable to save. Check your internet connection");
+showToast.warning("Player 'John' will be removed in 30 seconds");
+
+// ❌ Bad - vague or unhelpful
+showToast.success("Done");
+showToast.error("Error");
+showToast.warning("Something happened");
+```
+
+### 3. Use Appropriate Durations
+```tsx
+// Success messages - short duration (default 4s)
+showToast.success("Saved!");
+
+// Errors - longer duration (default 6s)
+showToast.error("Failed to save");
+
+// Important warnings - longer duration
+showToast.warning("Game will end soon", { duration: 8000 });
+
+// Critical info - non-dismissible
+showToast.error("Connection lost", { dismissible: false });
+```
+
+### 4. Auth-Specific Toast Patterns
+```tsx
+// Sign in success
+showToast.success("Welcome back!");
+
+// Sign out
+showToast.info("You've been signed out");
+
+// Auth errors
+showToast.error("Invalid email or password");
+
+// Session expired
+showToast.warning("Session expired. Please sign in again");
+```
+
+### 5. Game-Specific Toast Patterns
+```tsx
+// Game actions
+showToast.success("Trade completed");
+showToast.info("Your turn to roll");
+showToast.warning("Robber must be moved");
+
+// Player actions
+showToast.info("Player joined the game");
+showToast.warning("Player disconnected");
+
+// Game state changes
+showToast.success("Victory! You won the game!");
+showToast.info("Game paused");
+```
+
+## 🚫 Common Mistakes to Avoid
+
+### 1. Don't import from react-hot-toast directly
+```tsx
+// ❌ Wrong
+import toast from "react-hot-toast";
+
+// ✅ Correct
+import { showToast } from "@/components/toast";
+```
+
+### 2. Don't use conflicting variants
+```tsx
+// ❌ Wrong - error variant for success message
+showToast.error("Successfully saved!");
+
+// ✅ Correct
+showToast.success("Successfully saved!");
+```
+
+### 3. Don't spam toasts
+```tsx
+// ❌ Wrong - too many toasts
+onClick={() => {
+  showToast.success("Button clicked!");
+  showToast.info("Processing...");
+  showToast.success("Done!");
+}}
+
+// ✅ Correct - single meaningful toast
+onClick={() => {
+  showToast.promise(processAction(), {
+    loading: "Processing...",
+    success: "Action completed!",
+    error: "Action failed"
+  });
+}}
+```
+
+### 4. Don't forget to dismiss loading toasts
+```tsx
+// ❌ Wrong - loading toast never dismissed
+const loadingId = showToast.loading("Loading...");
+// ... async operation without dismissing
+
+// ✅ Correct - properly dismiss
+const loadingId = showToast.loading("Loading...");
+try {
+  await operation();
+  showToast.dismiss(loadingId);
+  showToast.success("Complete!");
+} catch (error) {
+  showToast.dismiss(loadingId);
+  showToast.error("Failed!");
+}
+```
+
+## 🔧 Dismissal Utilities
+
+### Dismiss Specific Toast
+```tsx
+const toastId = showToast.info("Processing...");
+// Later...
+showToast.dismiss(toastId);
+```
+
+### Dismiss All Toasts
+```tsx
+// Clear all toasts (useful for route changes)
+showToast.dismissAll();
+```
+
+## 🎨 Styling Integration
+
+The toast system automatically integrates with:
+- **Design system colors** (success: green, error: red, warning: yellow, info: blue)
+- **Dark mode** support
+- **Icon system** from `@/lib/icons`
+- **Tailwind CSS** classes
+- **Focus management** and accessibility
+
+## 📱 Responsive Behavior
+
+Toasts automatically:
+- Position at `top-right` on desktop
+- Adapt to mobile screens
+- Stack properly with 8px gutter
+- Handle overflow gracefully
+
+## 🧪 Testing Considerations
+
+When testing components that use toasts:
+```tsx
+// Mock the toast system in tests
+jest.mock("@/components/toast", () => ({
+  showToast: {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    promise: jest.fn(),
+  }
+}));
+```
+
+## 📊 Benefits of This System
+
+- **Consistent UX**: All toasts look and behave the same
+- **Type Safety**: Full TypeScript support with proper types
+- **Accessibility**: Built-in ARIA attributes and keyboard support
+- **Performance**: Optimized with proper animations and cleanup
+- **Maintainable**: Single source of truth for toast styling
+- **Flexible**: Supports custom icons, durations, and variants
+- **Integration**: Works seamlessly with your design system
+
+## 🔄 Migration from Basic Toast
+
+If you have existing `react-hot-toast` usage:
+
+```tsx
+// Before
+import toast from "react-hot-toast";
+toast.success("Success");
+toast.error("Error");
+
+// After
+import { showToast } from "@/components/toast";
+showToast.success("Success");
+showToast.error("Error");
+```
+
+The API is nearly identical, but you get all the design system benefits!

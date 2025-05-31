@@ -1,3 +1,8 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
 # Authentication System Rules
 
 ## Supabase Integration

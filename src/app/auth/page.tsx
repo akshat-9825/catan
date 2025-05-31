@@ -1,70 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { GalleryVerticalEnd } from "lucide-react";
-import { AuthForm } from "@/components/blocks/auth-form";
-import { AuthFormData } from "@/lib/schema/auth-schemas";
 import { AuthFormType } from "@/app/auth/auth-config";
+import { AuthForm } from "@/components/blocks/auth-form";
+import { PageLoadingFallback } from "@/components/fallbacks/LoadingFallbacks";
+import { showToast } from "@/components/toast";
+import { asyncDataFetchers, useAsyncData } from "@/lib/hooks/useAsyncData";
+import { GalleryVerticalEnd } from "@/lib/icons";
+import { AuthFormData } from "@/lib/schema/auth-schemas";
 import { authHelpers } from "@/lib/supabase/auth";
 import { supabase } from "@/lib/supabase/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Main auth content component that uses the data
+function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Check if user is already authenticated
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await authHelpers.getCurrentUser();
-      if (user) {
-        router.push("/dashboard"); // Redirect to dashboard or home page
-      }
-    };
+  // Check auth status using React 19 use() hook
+  const user = useAsyncData(asyncDataFetchers.checkAuthStatus);
 
-    checkUser();
+  // Redirect if already authenticated
+  if (user) {
+    router.push("/dashboard");
+    return null;
+  }
 
-    // Check for error in URL params
-    const urlError = searchParams.get("error");
-    if (urlError) {
-      setError(decodeURIComponent(urlError));
-    }
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        router.push("/dashboard");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router, searchParams]);
+  // Check for error in URL params and show toast
+  const urlError = searchParams.get("error");
+  if (urlError) {
+    showToast.error(decodeURIComponent(urlError));
+  }
 
   const handleFormSubmit = async (data: AuthFormData, type: AuthFormType) => {
-    if (isLoading) return; // Prevent multiple submissions
-
-    setIsLoading(true);
-    setError(null);
-
     try {
       if (type === "Login") {
-        const { data: authData, error: authError } = await authHelpers.signIn(
-          data.email,
-          data.password
+        const result = await showToast.promise(
+          authHelpers.signIn(data.email, data.password),
+          {
+            loading: "Signing in...",
+            success: () => "Welcome back!",
+            error: (error) => `Sign in failed: ${error.message}`,
+          }
         );
 
-        if (authError) {
-          throw new Error(authError.message);
-        }
-
-        if (authData?.user) {
-          console.log("Successfully logged in!");
+        if (result.data?.user) {
           router.push("/dashboard");
         }
       } else {
@@ -75,45 +55,30 @@ export default function LoginPage() {
           confirmPassword: string;
         };
 
-        const { data: authData, error: authError } = await authHelpers.signUp(
-          signupData.email,
-          signupData.password
+        const result = await showToast.promise(
+          authHelpers.signUp(signupData.email, signupData.password),
+          {
+            loading: "Creating account...",
+            success: () =>
+              "Account created! Please check your email to verify.",
+            error: (error) => `Signup failed: ${error.message}`,
+          }
         );
 
-        if (authError) {
-          throw new Error(authError.message);
-        }
-
-        if (authData?.user) {
-          console.log(
-            "Account created! Please check your email to verify your account."
-          );
-          setError(null);
-          // Show success message instead of error
-          setError(
-            "Account created! Please check your email to verify your account."
-          );
-          // Don't redirect immediately for signup - user needs to verify email
+        // Don't redirect immediately for signup - user needs to verify email
+        if (result.data?.user) {
+          showToast.info("Please check your email to verify your account.");
         }
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
-      setError(errorMessage);
+      // Error handling is already done by showToast.promise
       console.error(`${type} error:`, err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleGoogleAuth = async (type: AuthFormType) => {
-    if (isLoading) return; // Prevent multiple submissions
-
-    setIsLoading(true);
-    setError(null);
-
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -121,17 +86,17 @@ export default function LoginPage() {
       });
 
       if (error) {
-        throw new Error(error.message);
+        showToast.error(`Google authentication failed: ${error.message}`);
+        return;
       }
 
+      showToast.loading("Redirecting to Google...");
       // OAuth redirect will happen automatically
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Google authentication failed";
-      setError(errorMessage);
+      showToast.error(errorMessage);
       console.error("Google auth error:", err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -143,26 +108,17 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-center">Catan App</h1>
         </div>
 
-        {error && (
-          <div
-            className={`px-4 py-3 rounded-md text-sm ${
-              error.includes("Account created")
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-destructive/15 text-destructive"
-            }`}
-          >
-            {error}
-          </div>
-        )}
-
-        {isLoading && (
-          <div className="text-center text-sm text-muted-foreground">
-            Please wait...
-          </div>
-        )}
-
         <AuthForm onSubmit={handleFormSubmit} onGoogleAuth={handleGoogleAuth} />
       </div>
     </div>
+  );
+}
+
+// Main component with error boundary and suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <AuthPageContent />
+    </Suspense>
   );
 }
