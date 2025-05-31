@@ -1,0 +1,102 @@
+# React 19 use() Hook Patterns
+
+## Data Fetching with use() Hook
+- ALWAYS use React 19's `use()` hook for async data fetching instead of useState/useEffect
+- Use the `useAsyncData` utility from `@/lib/hooks/useAsyncData` for consistent patterns
+- Wrap components with `<Suspense>` for loading states and `<ErrorBoundary>` for error handling
+- Create reusable data fetchers with `createAsyncDataFetcher()` and cache keys
+
+## Component Structure Pattern
+```tsx
+// Main component with error boundary and suspense
+export default function Page() {
+  return (
+    <ErrorBoundary fallback={<ErrorFallback />}>
+      <Suspense fallback={<LoadingFallback />}>
+        <PageContent />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+// Content component that uses the data
+function PageContent() {
+  const data = useAsyncData(dataFetcher);
+  return <div>{/* Render with data */}</div>;
+}
+```
+
+## Authentication Patterns
+- Use `asyncDataFetchers.getCurrentUser` for protected routes that require authentication
+- Use `asyncDataFetchers.checkAuthStatus` for routes that redirect based on auth state
+- Always handle authentication errors by redirecting to `/auth`
+- Use optional chaining (`user?.email`) when displaying user data
+
+## Error Handling
+- NEVER use try-catch blocks around `use()` hook calls
+- Use ErrorBoundary components for error handling
+- Create specific error fallback components for different error types
+- Log errors in ErrorBoundary `componentDidCatch` method
+
+## Performance Patterns
+
+### Data Fetching
+- Use cached data fetchers to avoid duplicate requests
+- Leverage parallel data fetching with multiple `use()` calls
+- Implement conditional fetching when data isn't always needed
+- Clear cache on errors to allow retry
+
+### Component Optimization
+- Use Suspense boundaries at appropriate levels (not too granular)
+- Avoid creating new promise instances on every render
+- Use stable function references for data fetchers
+
+## Code Examples
+
+### Basic Data Fetching
+```tsx
+function UserProfile() {
+  const user = useAsyncData(asyncDataFetchers.getCurrentUser);
+  return <div>Welcome, {user?.email}</div>;
+}
+```
+
+### Conditional Fetching
+```tsx
+function ConditionalData({ shouldFetch }: { shouldFetch: boolean }) {
+  if (shouldFetch) {
+    const data = use(fetchData());
+    return <div>{data}</div>;
+  }
+  return <div>No data requested</div>;
+}
+```
+
+### Parallel Data Fetching
+```tsx
+function ParallelData() {
+  const users = use(fetchUsers());    // These run in parallel
+  const posts = use(fetchPosts());    // automatically!
+  
+  return (
+    <div>
+      <UserList users={users} />
+      <PostList posts={posts} />
+    </div>
+  );
+}
+```
+
+## Testing Standards
+- Test components with Suspense and ErrorBoundary wrappers
+- Mock data fetchers for consistent test results
+- Test loading and error states
+- Mock `use()` hook calls appropriately
+
+## Code Review Checklist
+Before submitting code, ensure:
+- [ ] Uses `use()` hook instead of useState/useEffect for async data
+- [ ] Proper Suspense and ErrorBoundary wrapping
+- [ ] Error handling follows established patterns
+- [ ] No try-catch blocks around `use()` calls
+- [ ] Uses reusable data fetchers with caching 

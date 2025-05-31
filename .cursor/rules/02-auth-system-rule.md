@@ -1,0 +1,70 @@
+# Authentication System Rules
+
+## Supabase Integration
+
+### Client & Auth Helpers
+- Use `@/lib/supabase/client` for Supabase client instance
+- Use `@/lib/supabase/auth` for authentication helpers
+- Environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+### Auth Components
+- Main auth form: `@/components/blocks/auth-form`
+- Auth configuration: `@/app/auth/auth-config`
+- Validation schemas: `@/lib/schema/auth-schemas`
+- Use `AuthFormType` for "Login" | "Signup"
+- Use `AuthFormData` type for form data
+
+## Authentication Flow
+
+### Route Structure
+- Login/Signup page: `/auth`
+- OAuth callback: `/auth/callback`
+- Protected dashboard: `/dashboard`
+- Auto-redirect authenticated users to `/dashboard`
+- Auto-redirect unauthenticated users to `/auth`
+
+### Best Practices
+- Always use `authHelpers` for auth operations
+- Handle loading states with `useState`
+- Handle errors with proper error messages
+- Use `useRouter` for programmatic navigation
+- Listen to auth state changes with `supabase.auth.onAuthStateChange`
+- Clean up subscriptions in `useEffect` cleanup
+
+## Error Handling
+
+### Auth Error Management
+- Catch and display Supabase auth errors
+- Show loading states during auth operations
+- Prevent multiple form submissions with loading checks
+- Use URL search params for error messages
+
+## Protected Routes
+
+### Route Protection
+- Check user authentication in `useEffect`
+- Redirect to `/auth` if no user found
+- Show loading spinner while checking auth status
+- Use `getCurrentUser()` for auth checks
+
+## Form Validation
+
+### Validation Rules
+- Use `react-hook-form` with `zodResolver`
+- Password requirements: 8+ chars, uppercase, lowercase, number
+- Email validation with proper error messages
+- Confirm password validation for signup
+
+## OAuth Configuration
+
+### Google Auth Setup
+- Google OAuth redirects to `/auth/callback`
+- Handle OAuth errors gracefully
+- Use proper redirect URLs in Supabase dashboard
+
+## Session Management
+
+### Session Handling
+- Sessions are handled automatically by Supabase
+- Use auth state change listeners for real-time updates
+- No manual token management required 
