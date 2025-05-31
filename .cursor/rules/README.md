@@ -5,11 +5,13 @@ This folder contains organized cursor rules for the Catan project. Each rule fil
 ## Rule Files
 
 ### `01-icon-system-rule.md`
-Comprehensive rules for the centralized icon system:
+Comprehensive rules for the expanded centralized icon system:
 - How to properly import icons from `@/lib/icons`
-- Icon management patterns
+- Support for both Lucide icons and custom icons
+- Icon management patterns and folder structure
 - Type safety guidelines
 - Common mistakes to avoid
+- Custom icon creation guidelines
 
 ## Naming Convention
 

@@ -15,6 +15,7 @@ import {
   
   export type IconComponent = typeof User
 
+  // Lucide icons
   export { 
     User,
     Mail, 
@@ -29,3 +30,6 @@ import {
     CircleIcon, 
     ChevronRightIcon
   }
+
+  // Custom icons
+  export { GoogleIcon } from './GoogleIcon'
