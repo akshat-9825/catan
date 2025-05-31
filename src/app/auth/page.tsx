@@ -9,7 +9,7 @@ import { GalleryVerticalEnd } from "@/lib/icons";
 import { AuthFormData } from "@/lib/schema/auth-schemas";
 import { authHelpers } from "@/lib/supabase/auth";
 import { supabase } from "@/lib/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 // Main auth content component that uses the data
@@ -22,8 +22,12 @@ function AuthPageContent() {
 
   // Redirect if already authenticated
   if (user) {
-    router.push("/dashboard");
-    return null;
+    showToast.info("You are already logged in", {
+      duration: 1000,
+    });
+    setTimeout(() => {
+      redirect("/dashboard");
+    }, 1000);
   }
 
   // Check for error in URL params and show toast
