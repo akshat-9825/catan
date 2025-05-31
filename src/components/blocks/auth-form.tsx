@@ -1,5 +1,7 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,74 +9,94 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { GoogleIcon } from "@/lib/icons";
+import { GoogleAuthButton } from "./google-auth-button";
+import { AuthDivider } from "./auth-divider";
+import { EmailPasswordForm } from "./email-password-form";
+import { AuthToggle } from "./auth-toggle";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AuthFormType,
+  getAuthConfig,
+  loginConfig,
+  signupConfig,
+} from "@/app/auth/auth-config";
+import { AuthFormData } from "@/lib/schema/auth-schemas";
 
-type AuthFormProps = React.ComponentProps<"div"> & {
-  type: AuthFormType;
-};
-
-type AuthFormType = "Login" | "Signup";
+type AuthFormProps = {
+  className?: string;
+  initialType?: AuthFormType;
+  onSubmit?: (data: AuthFormData, type: AuthFormType) => void;
+  onGoogleAuth?: (type: AuthFormType) => void;
+} & Omit<React.ComponentProps<"div">, "onSubmit">;
 
 export function AuthForm({
   className,
-  type = "Login" as AuthFormType,
+  initialType = "Login",
+  onSubmit,
+  onGoogleAuth,
   ...props
 }: AuthFormProps) {
+  const [type, setType] = useState<AuthFormType>(initialType);
+  const config = getAuthConfig(type);
+
+  const form = useForm<AuthFormData>({
+    resolver: zodResolver(config.schema),
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: "",
+      ...(type === "Signup" && { confirmPassword: "" }),
+    },
+  });
+
+  const handleTypeChange = () => {
+    const newType = type === "Login" ? "Signup" : "Login";
+    setType(newType);
+
+    form.reset({
+      email: "",
+      password: "",
+      ...(newType === "Signup" && { confirmPassword: "" }),
+    });
+
+    form.clearErrors();
+  };
+
+  const handleFormSubmit = (data: AuthFormData) => {
+    console.log("Form submitted:", { data, type });
+    onSubmit?.(data, type);
+  };
+
+  const handleGoogleAuth = () => {
+    console.log("Google auth clicked:", type);
+    onGoogleAuth?.(type);
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>{type} with Google account</CardDescription>
+          <CardTitle className="text-xl">{config.title}</CardTitle>
+          <CardDescription>{config.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={form.handleSubmit(handleFormSubmit)}>
             <div className="grid gap-6">
-              <div className="flex flex-col gap-4">
-                <Button variant="outline" className="w-full">
-                  <GoogleIcon className="size-4" />
-                  {type} with Google
-                </Button>
-              </div>
-              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
-                </span>
-              </div>
-              <div className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <a
-                      href="#"
-                      className="ml-auto text-sm underline-offset-4 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
-                  <Input id="password" type="password" required />
-                </div>
-                <Button type="submit" className="w-full">
-                  {type}
-                </Button>
-              </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <a href="#" className="underline underline-offset-4">
-                  Sign up
-                </a>
-              </div>
+              <GoogleAuthButton
+                config={config}
+                onGoogleAuth={handleGoogleAuth}
+              />
+
+              {config.showGoogleAuth && <AuthDivider />}
+
+              <EmailPasswordForm
+                config={config}
+                form={form}
+                onSubmit={handleFormSubmit}
+              />
+
+              <AuthToggle config={config} onToggle={handleTypeChange} />
             </div>
           </form>
         </CardContent>
